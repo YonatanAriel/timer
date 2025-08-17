@@ -119,7 +119,8 @@ function useChimes() {
 type Mode = "idle" | "work" | "workDone" | "break" | "breakDone";
 
 export default function App() {
-  const [minutes, setMinutes] = useState<number>(20);
+  // Keep a string so the user can clear the field (no forced 0)
+  const [minutesInput, setMinutesInput] = useState<string>("20");
   const [target, setTarget] = useState<number | null>(null);
   const [now, setNow] = useState(() => performance.now());
   const [mode, setMode] = useState<Mode>("idle");
@@ -158,6 +159,11 @@ export default function App() {
     };
   }, []);
 
+  const minutes = useMemo(() => {
+    const n = parseInt(minutesInput, 10);
+    if (Number.isNaN(n)) return 0;
+    return Math.max(0, Math.min(59, n));
+  }, [minutesInput]);
   const baseMs = useMemo(() => Math.max(0, minutes) * 60_000, [minutes]);
   const remaining = target
     ? Math.max(0, target - now)
@@ -187,6 +193,11 @@ export default function App() {
     if (duration <= 0) return;
     setTarget(performance.now() + duration);
     setMode("work");
+    // Keep focus on the field and select the value
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
   }, [baseMs]);
 
   const restartWork = useCallback(() => {
@@ -194,6 +205,10 @@ export default function App() {
     if (duration <= 0) return;
     setTarget(performance.now() + duration);
     setMode("work");
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
   }, [baseMs]);
 
   const startBreak = useCallback(() => {
@@ -206,6 +221,10 @@ export default function App() {
     stopAll();
     setTarget(performance.now() + baseMs);
     setMode("work");
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
   }, [baseMs, stopAll]);
 
   const stopAllFlow = useCallback(() => {
@@ -288,12 +307,20 @@ export default function App() {
               inputMode="numeric"
               min={0}
               max={59}
-              value={minutes}
-              onChange={(e) =>
-                setMinutes(
-                  Math.max(0, Math.min(59, Number(e.target.value) || 0))
-                )
-              }
+              value={minutesInput}
+              onChange={(e) => {
+                // Allow empty while typing; strip non-digits and limit to 2 chars
+                const raw = e.target.value;
+                const digits = raw.replace(/\D+/g, "").slice(0, 2);
+                setMinutesInput(digits);
+              }}
+              onBlur={() => {
+                // Normalize on blur
+                const n = parseInt(minutesInput, 10);
+                if (Number.isNaN(n)) return setMinutesInput("");
+                const clamped = Math.max(0, Math.min(59, n));
+                setMinutesInput(String(clamped));
+              }}
               ref={minutesRef}
               className="w-full h-12 rounded-2xl bg-white border border-emerald-200 px-4 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
               placeholder="20"
@@ -301,7 +328,7 @@ export default function App() {
           </div>
           <button
             type="submit"
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition"
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition cursor-pointer"
             disabled={
               mode === "break" || mode === "workDone" || mode === "breakDone"
             }
@@ -328,13 +355,13 @@ export default function App() {
             <div className="flex gap-3">
               <button
                 onClick={startBreak}
-    className="h-12 px-7 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition"
+                className="h-12 px-7 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition cursor-pointer"
               >
                 Continue
               </button>
               <button
                 onClick={stopAllFlow}
-    className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition"
+                className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition cursor-pointer"
               >
                 Stop
               </button>
@@ -347,13 +374,13 @@ export default function App() {
             <div className="flex gap-3">
               <button
                 onClick={restartAfterBreak}
-                className="h-12 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition"
+                className="h-12 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition cursor-pointer"
               >
                 Restart
               </button>
               <button
                 onClick={stopAllFlow}
-                className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition"
+                className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition cursor-pointer"
               >
                 Stop
               </button>
