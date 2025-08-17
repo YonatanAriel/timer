@@ -11,6 +11,15 @@ export default defineConfig({
       plugins: [tailwind as any, autoprefixer()],
     },
   },
+  server: {
+    proxy: {
+      '/media': {
+        target: 'https://upload.wikimedia.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/media/, ''),
+      },
+    },
+  },
   build: {
     outDir: 'dist',
   },

@@ -245,8 +245,22 @@ export default function App() {
   return (
     <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       {/* Calm online sounds (PD/CC0) with crossorigin so they play reliably */}
-      <audio ref={workEl} crossOrigin="anonymous" preload="auto" src="https://upload.wikimedia.org/wikipedia/commons/3/37/Bristol_Chimes.ogg" />
-      <audio ref={breakEl} crossOrigin="anonymous" preload="auto" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Synthetic_bell_sound.ogg" />
+      {/* Use Vite proxy in dev to avoid CORS; in prod fetch direct from Wikimedia */}
+      {(() => {
+        const isDev = (import.meta as any).env?.DEV ?? false;
+        const workSrc = isDev
+          ? '/media/wikipedia/commons/3/37/Bristol_Chimes.ogg'
+          : 'https://upload.wikimedia.org/wikipedia/commons/3/37/Bristol_Chimes.ogg';
+        const breakSrc = isDev
+          ? '/media/wikipedia/commons/4/4f/Synthetic_bell_sound.ogg'
+          : 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Synthetic_bell_sound.ogg';
+        return (
+          <>
+            <audio ref={workEl} preload="auto" src={workSrc} />
+            <audio ref={breakEl} preload="auto" src={breakSrc} />
+          </>
+        );
+      })()}
       {/* Ambient colorful clouds */}
       <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-500/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-indigo-500/25 blur-3xl" />
@@ -289,13 +303,20 @@ export default function App() {
 
         {mode === 'workDone' && (
           <div className="mt-10 flex flex-col items-center gap-4">
-            <div className="text-white/85 text-sm">Time's up. Press Continue (or Enter) for a 23s break.</div>
-            <button
-              onClick={startBreak}
-              className="h-12 px-7 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-900 font-semibold shadow-lg shadow-cyan-500/30 transition"
-            >
-              Continue
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={startBreak}
+                className="h-12 px-7 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-900 font-semibold shadow-lg shadow-cyan-500/30 transition"
+              >
+                Continue
+              </button>
+              <button
+                onClick={stopAllFlow}
+                className="h-12 px-6 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-white/90 transition"
+              >
+                Stop
+              </button>
+            </div>
           </div>
         )}
 
