@@ -25,7 +25,9 @@ async function createWindow() {
     await win.loadURL(process.env.VITE_DEV_SERVER_URL!);
     win.webContents.openDevTools({ mode: "detach" });
   } else {
-    await win.loadFile(join(__dirname, "..", "dist", "index.html"));
+    // In production, 'dist' sits next to the compiled electron files
+    const indexPath = join(__dirname, "..", "dist", "index.html");
+    await win.loadFile(indexPath);
   }
 
   win.webContents.setWindowOpenHandler(({ url }) => {
