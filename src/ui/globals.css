@@ -1,0 +1,4 @@
+/* base styles for Tailwind to pick up */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

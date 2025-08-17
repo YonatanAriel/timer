@@ -1,0 +1,47 @@
+import { app, BrowserWindow, shell } from 'electron';
+import { join } from 'path';
+
+const isDev = !!process.env.VITE_DEV_SERVER_URL;
+
+let win: BrowserWindow | null = null;
+
+async function createWindow() {
+  win = new BrowserWindow({
+    width: 420,
+    height: 520,
+    resizable: false,
+    fullscreenable: false,
+    title: 'Timer',
+    backgroundColor: '#0B1220',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: join(__dirname, 'preload.js'),
+    },
+  });
+
+  if (isDev) {
+    await win.loadURL(process.env.VITE_DEV_SERVER_URL!);
+    win.webContents.openDevTools({ mode: 'detach' });
+  } else {
+    await win.loadFile(join(__dirname, '..', 'dist', 'index.html'));
+  }
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' } as any;
+  });
+}
+
+app.whenReady().then(async () => {
+  await createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
