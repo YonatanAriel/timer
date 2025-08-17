@@ -13,7 +13,9 @@ async function createWindow() {
     backgroundColor: "#0B1220",
     autoHideMenuBar: true,
     webPreferences: {
-      preload: (0, import_path.join)(__dirname, "preload.js")
+      preload: (0, import_path.join)(__dirname, "preload.js"),
+      // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets
+      webSecurity: !isDev
     }
   });
   if (isDev) {

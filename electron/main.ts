@@ -16,6 +16,8 @@ async function createWindow() {
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
+      // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets
+      webSecurity: !isDev,
     },
   });
 

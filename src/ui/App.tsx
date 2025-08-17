@@ -243,7 +243,7 @@ export default function App() {
   }, [mode, startWork]);
 
   return (
-    <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-50 text-slate-800">
       {/* Calm online sounds (PD/CC0) with crossorigin so they play reliably */}
       {/* Use Vite proxy in dev to avoid CORS; in prod fetch direct from Wikimedia */}
       {(() => {
@@ -262,16 +262,16 @@ export default function App() {
         );
       })()}
       {/* Ambient colorful clouds */}
-      <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-indigo-500/25 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/3 -left-20 h-72 w-72 rounded-full bg-fuchsia-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-lime-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 -left-20 h-72 w-72 rounded-full bg-teal-300/20 blur-3xl" />
 
-      <div className={`relative z-10 w-full max-w-md rounded-3xl bg-white/5 backdrop-blur-xl shadow-[0_30px_80px_rgba(0,0,0,0.6)] p-8 border border-white/10 ${mode === 'workDone' || mode === 'breakDone' ? 'ring-2 ring-cyan-400/30' : ''}`}>
-        <h1 className="text-3xl font-semibold tracking-tight mb-6 bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">20 20 20 timer</h1>
+      <div className={`relative z-10 w-full max-w-md rounded-3xl bg-white/70 backdrop-blur-xl shadow-[0_30px_80px_rgba(0,0,0,0.15)] p-8 border border-emerald-200 ${mode === 'workDone' || mode === 'breakDone' ? 'ring-2 ring-emerald-400/40' : ''}`}>
+        <h1 className="text-3xl font-semibold tracking-tight mb-6 bg-gradient-to-r from-emerald-600 to-lime-600 bg-clip-text text-transparent">20 20 20 timer</h1>
 
         <form className="space-y-5 mb-8" onSubmit={(e) => { e.preventDefault(); startWork(); }}>
           <div>
-            <label className="block text-xs text-white/60 mb-1">Minutes</label>
+            <label className="block text-xs text-slate-600 mb-1">Minutes</label>
             <input
               type="number"
               inputMode="numeric"
@@ -280,13 +280,13 @@ export default function App() {
               value={minutes}
               onChange={(e) => setMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
               ref={minutesRef}
-              className="w-full h-12 rounded-2xl bg-white/10 border border-white/15 px-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-sky-400/70 focus:bg-white/15"
+              className="w-full h-12 rounded-2xl bg-white border border-emerald-200 px-4 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
               placeholder="20"
             />
           </div>
           <button
             type="submit"
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-900 font-semibold shadow-lg shadow-cyan-500/25 transition"
+            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition"
             disabled={mode !== 'idle'}
           >
             {mode === 'work' ? 'Running…' : 'Start'}
@@ -294,8 +294,8 @@ export default function App() {
         </form>
 
         <div className="text-center select-none">
-          <div className="inline-block rounded-2xl px-5 py-2 bg-white/5 border border-white/10 backdrop-blur-md">
-            <div className="text-7xl md:text-8xl font-semibold tracking-tight tabular-nums font-mono text-sky-100 drop-shadow-[0_0_24px_rgba(125,200,255,0.25)] select-none">
+          <div className="inline-block rounded-2xl px-5 py-2 bg-white/70 border border-emerald-200 backdrop-blur-md">
+            <div className="text-7xl md:text-8xl font-semibold tracking-tight tabular-nums font-mono text-emerald-700 drop-shadow-[0_0_24px_rgba(16,185,129,0.25)] select-none">
             {formatTime(remaining)}
             </div>
           </div>
@@ -322,17 +322,16 @@ export default function App() {
 
         {mode === 'breakDone' && (
           <div className="mt-10 flex flex-col items-center gap-4">
-            <div className="text-white/85 text-sm">Break finished.</div>
             <div className="flex gap-3">
               <button
                 onClick={restartAfterBreak}
-                className="h-12 px-6 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-900 font-semibold shadow-lg shadow-cyan-500/30 transition"
+                className="h-12 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition"
               >
                 Restart
               </button>
               <button
                 onClick={stopAllFlow}
-                className="h-12 px-6 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-white/90 transition"
+                className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition"
               >
                 Stop
               </button>
