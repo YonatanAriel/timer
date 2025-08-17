@@ -231,6 +231,11 @@ export default function App() {
     stopAll();
     setTarget(null);
     setMode("idle");
+    // Return focus to input and select its text
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
   }, [stopAll]);
 
   // Enter to continue from workDone → break
@@ -292,12 +297,12 @@ export default function App() {
           20 20 20 timer
         </h1>
 
-        <form
+    <form
           className="space-y-5 mb-8"
           onSubmit={(e) => {
             e.preventDefault();
-            if (mode === "idle") startWork();
-            else if (mode === "work") restartWork();
+      if (mode === "work") restartWork();
+      else startWork(); // allow Start in idle, workDone, breakDone
           }}
         >
           <div>
@@ -329,9 +334,7 @@ export default function App() {
           <button
             type="submit"
             className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition cursor-pointer"
-            disabled={
-              mode === "break" || mode === "workDone" || mode === "breakDone"
-            }
+            disabled={mode === "break"}
             title={
               mode === "work"
                 ? "Click to apply the new minutes"
