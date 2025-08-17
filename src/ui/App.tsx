@@ -20,6 +20,7 @@ function formatTime(ms: number) {
 function useChimes() {
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<Array<AudioNode>>([]);
+  const timersRef = useRef<number[]>([]);
 
   const ensure = useCallback(() => {
     if (!ctxRef.current)
@@ -31,6 +32,9 @@ function useChimes() {
   const stopAll = useCallback(() => {
     const ctx = ensure();
     const now = ctx.currentTime;
+    // Clear any loop timers
+    timersRef.current.forEach((id) => clearInterval(id));
+    timersRef.current = [];
     nodesRef.current.forEach((n) => {
       try {
         if ("gain" in (n as any)) {
@@ -106,12 +110,30 @@ function useChimes() {
 
   // Local-only playback via WebAudio (no network/CORS)
   const playWorkEnd = useCallback(() => {
+    // Stop previous loops if any
+    stopAll();
+    // Start a gentle repeating arpeggio every ~3s until stopped
     playWorkEndSynth();
-  }, [playWorkEndSynth]);
+    const id = window.setInterval(() => {
+      try {
+        playWorkEndSynth();
+      } catch {}
+    }, 3000);
+    timersRef.current.push(id as unknown as number);
+  }, [playWorkEndSynth, stopAll]);
 
   const playBreakEnd = useCallback(() => {
+    // Stop previous loops if any
+    stopAll();
+    // Soft ping every ~2.5s until stopped
     playBreakEndSynth();
-  }, [playBreakEndSynth]);
+    const id = window.setInterval(() => {
+      try {
+        playBreakEndSynth();
+      } catch {}
+    }, 2500);
+    timersRef.current.push(id as unknown as number);
+  }, [playBreakEndSynth, stopAll]);
 
   return { playWorkEnd, playBreakEnd, stopAll };
 }
@@ -189,6 +211,7 @@ export default function App() {
   }, [remaining, target, mode, playWorkEnd, playBreakEnd]);
 
   const startWork = useCallback(() => {
+    stopAll();
     const duration = baseMs;
     if (duration <= 0) return;
     setTarget(performance.now() + duration);
@@ -201,6 +224,7 @@ export default function App() {
   }, [baseMs]);
 
   const restartWork = useCallback(() => {
+    stopAll();
     const duration = baseMs;
     if (duration <= 0) return;
     setTarget(performance.now() + duration);
@@ -212,10 +236,11 @@ export default function App() {
   }, [baseMs]);
 
   const startBreak = useCallback(() => {
+    stopAll();
     const duration = 23_000; // 23 seconds
     setTarget(performance.now() + duration);
     setMode("break");
-  }, []);
+  }, [stopAll]);
 
   const restartAfterBreak = useCallback(() => {
     stopAll();
