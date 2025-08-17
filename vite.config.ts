@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [react()],
   css: {
     postcss: {
-      plugins: [tailwind(), autoprefixer()],
+      // tailwind is a plugin object (no invocation), autoprefixer is a factory
+      plugins: [tailwind as any, autoprefixer()],
     },
   },
   build: {
