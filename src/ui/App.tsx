@@ -198,6 +198,13 @@ export default function App() {
     setMode('work');
   }, [baseMs]);
 
+  const restartWork = useCallback(() => {
+    const duration = baseMs;
+    if (duration <= 0) return;
+    setTarget(performance.now() + duration);
+    setMode('work');
+  }, [baseMs]);
+
   const startBreak = useCallback(() => {
     const duration = 23_000; // 23 seconds
     setTarget(performance.now() + duration);
@@ -225,6 +232,19 @@ export default function App() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [mode, startBreak]);
+
+  // Enter to update the running timer with the new minutes when in work
+  useEffect(() => {
+    if (mode !== 'work') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        restartWork();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mode, restartWork]);
 
   // Space to start when idle, but ignore if typing in inputs/buttons
   useEffect(() => {
@@ -269,7 +289,14 @@ export default function App() {
       <div className={`relative z-10 w-full max-w-md rounded-3xl bg-white/70 backdrop-blur-xl shadow-[0_30px_80px_rgba(0,0,0,0.15)] p-8 border border-emerald-200 ${mode === 'workDone' || mode === 'breakDone' ? 'ring-2 ring-emerald-400/40' : ''}`}>
         <h1 className="text-3xl font-semibold tracking-tight mb-6 bg-gradient-to-r from-emerald-600 to-lime-600 bg-clip-text text-transparent">20 20 20 timer</h1>
 
-        <form className="space-y-5 mb-8" onSubmit={(e) => { e.preventDefault(); startWork(); }}>
+        <form
+          className="space-y-5 mb-8"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (mode === 'idle') startWork();
+            else if (mode === 'work') restartWork();
+          }}
+        >
           <div>
             <label className="block text-xs text-slate-600 mb-1">Minutes</label>
             <input
@@ -287,7 +314,8 @@ export default function App() {
           <button
             type="submit"
             className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition"
-            disabled={mode !== 'idle'}
+            disabled={mode === 'break' || mode === 'workDone' || mode === 'breakDone'}
+            title={mode === 'work' ? 'Click to apply the new minutes' : 'Start the timer'}
           >
             {mode === 'work' ? 'Running…' : 'Start'}
           </button>
