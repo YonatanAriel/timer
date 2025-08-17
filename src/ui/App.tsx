@@ -293,7 +293,7 @@ export default function App() {
 
   // Space to start when idle, but ignore if typing in inputs/buttons
   useEffect(() => {
-  if (mode !== "idle") return;
+    if (mode !== "idle") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== " ") return;
       const target = e.target as HTMLElement | null;
@@ -319,7 +319,7 @@ export default function App() {
 
   return (
     <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-50 text-slate-800">
-  {/* No external audio elements needed; sounds are generated locally via WebAudio */}
+      {/* No external audio elements needed; sounds are generated locally via WebAudio */}
       {/* Ambient colorful clouds */}
       <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-lime-300/30 blur-3xl" />
@@ -336,7 +336,7 @@ export default function App() {
           20 20 20 timer
         </h1>
 
-    <form
+        <form
           className="space-y-5 mb-8"
           onSubmit={(e) => {
             e.preventDefault();
@@ -392,7 +392,7 @@ export default function App() {
           </div>
         </div>
 
-  {mode === "workDone" && (
+        {mode === "workDone" && (
           <div className="mt-10 flex flex-col items-center gap-4">
             <div className="flex gap-3">
               <button
