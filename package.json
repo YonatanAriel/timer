@@ -8,8 +8,10 @@
     "dev": "concurrently -n VITE,ESB1,ESB2,EL \"vite\" \"esbuild electron/main.ts --bundle --platform=node --external:electron --outfile=electron/main.cjs --watch\" \"esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js --watch\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electronmon .\"",
     "build:ui": "vite build",
     "build:electron": "esbuild electron/main.ts --bundle --platform=node --external:electron --outfile=electron/main.cjs && esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js",
-    "build": "npm run build:ui && npm run build:electron",
-    "start": "cross-env NODE_ENV=production electron ."
+  "build": "npm run build:ui && npm run build:electron",
+  "start": "cross-env NODE_ENV=production electron .",
+  "pack": "npm run build && electron-builder",
+  "pack:win": "npm run build && electron-builder --win"
   },
   "devDependencies": {
     "@rollup/rollup-win32-x64-msvc": "^4.46.2",
@@ -23,7 +25,8 @@
     "cross-env": "^10.0.0",
     "electron": "^36.8.0",
     "electronmon": "^2.0.3",
-    "esbuild": "^0.25.9",
+  "esbuild": "^0.25.9",
+  "electron-builder": "^24.13.3",
     "lightningcss-win32-x64-msvc": "^1.30.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.12",
@@ -34,6 +37,34 @@
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
+  },
+  "build": {
+    "appId": "com.yonatan.timer",
+    "productName": "20 20 20 Timer",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "!electron/*.ts",
+      "package.json",
+      "!stubs/**"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   },
   "overrides": {
     "@electron/get": "2.0.3",

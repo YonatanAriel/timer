@@ -13,7 +13,7 @@ async function createWindow() {
     fullscreenable: false,
     title: "20 20 20 timer",
     backgroundColor: "#0B1220",
-    autoHideMenuBar: true,
+  autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, "preload.js"),
       // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets
@@ -32,6 +32,8 @@ async function createWindow() {
     shell.openExternal(url);
     return { action: "deny" } as any;
   });
+
+  // no always-on-top by default
 }
 
 app.whenReady().then(async () => {

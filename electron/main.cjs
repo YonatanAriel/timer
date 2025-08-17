@@ -12,6 +12,7 @@ async function createWindow() {
     title: "20 20 20 timer",
     backgroundColor: "#0B1220",
     autoHideMenuBar: true,
+    alwaysOnTop: true,
     webPreferences: {
       preload: (0, import_path.join)(__dirname, "preload.js"),
       // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets
@@ -28,14 +29,21 @@ async function createWindow() {
     import_electron.shell.openExternal(url);
     return { action: "deny" };
   });
+  win.setAlwaysOnTop(true, "screen-saver");
 }
 import_electron.app.whenReady().then(async () => {
   await createWindow();
+  import_electron.globalShortcut.register("Control+Shift+T", () => {
+    if (!win) return;
+    const current = win.isAlwaysOnTop();
+    win.setAlwaysOnTop(!current, "screen-saver");
+  });
   import_electron.app.on("activate", () => {
     if (import_electron.BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 import_electron.app.on("window-all-closed", () => {
+  import_electron.globalShortcut.unregisterAll();
   if (process.platform !== "darwin") {
     import_electron.app.quit();
   }
