@@ -201,6 +201,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [mode, startBreak]);
 
+  // Space to start when idle, but ignore if typing in inputs/buttons
+  useEffect(() => {
+    if (mode !== 'idle') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== ' ') return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const isInteractive = tag === 'input' || tag === 'button' || target?.isContentEditable;
+      if (isInteractive) return;
+      e.preventDefault();
+      startWork();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mode, startWork]);
+
   return (
     <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       {/* Ambient colorful clouds */}
