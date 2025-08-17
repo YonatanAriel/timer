@@ -119,8 +119,8 @@ export default function App() {
   }, [baseMs, stopTone]);
 
   return (
-    <div className="min-h-full flex items-center justify-center p-6">
-      <div className="w-full max-w-sm rounded-2xl bg-card shadow-card p-6 border border-white/5">
+    <div className="min-h-full flex items-center justify-center p-6 bg-slate-950 text-white">
+      <div className="w-full max-w-sm rounded-2xl bg-slate-900 shadow-xl p-6 border border-white/10">
         <h1 className="text-2xl font-semibold tracking-tight mb-6 text-white/90">Calm Timer</h1>
 
         <form
@@ -136,7 +136,7 @@ export default function App() {
               max={999}
               value={inputs.hours}
               onChange={(e) => setInputs((s) => ({ ...s, hours: Math.max(0, Math.min(999, Number(e.target.value)||0)) }))}
-              className="w-full rounded-lg bg-surface/80 border border-white/10 px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-accent/60"
+              className="w-full rounded-lg bg-slate-800/80 border border-white/10 px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
               placeholder="0"
             />
           </div>
@@ -149,7 +149,7 @@ export default function App() {
               max={59}
               value={inputs.minutes}
               onChange={(e) => setInputs((s) => ({ ...s, minutes: Math.max(0, Math.min(59, Number(e.target.value)||0)) }))}
-              className="w-full rounded-lg bg-surface/80 border border-white/10 px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-accent/60"
+              className="w-full rounded-lg bg-slate-800/80 border border-white/10 px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-sky-400/60"
               placeholder="0"
             />
           </div>
@@ -163,7 +163,7 @@ export default function App() {
         </form>
 
         <div className="text-center">
-          <div className="text-6xl font-semibold tracking-tight tabular-nums text-calm drop-shadow-[0_0_20px_rgba(124,196,255,0.25)] select-none">
+          <div className="text-6xl font-semibold tracking-tight tabular-nums text-sky-200 drop-shadow-[0_0_20px_rgba(124,196,255,0.25)] select-none">
             {formatTime(remaining)}
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function App() {
             <div className="text-white/80">Time's up. Breathe in… breathe out.</div>
             <button
               onClick={stopRingingAndRestart}
-              className="h-11 px-4 rounded-lg bg-accent/20 hover:bg-accent/30 text-white border border-accent/30 transition"
+              className="h-11 px-4 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-white border border-sky-400/30 transition"
             >
               Restart
             </button>

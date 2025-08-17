@@ -5,31 +5,40 @@
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
-  "dev": "concurrently -n VITE,ESB1,ESB2,EL \"vite\" \"esbuild electron/main.ts --bundle --platform=node --outfile=electron/main.cjs --watch\" \"esbuild electron/preload.ts --bundle --platform=browser --outfile=electron/preload.js --watch\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electronmon .\"",
+  "dev": "concurrently -n VITE,ESB1,ESB2,EL \"vite\" \"esbuild electron/main.ts --bundle --platform=node --outfile=electron/main.cjs --watch\" \"esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js --watch\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electronmon .\"",
     "build:ui": "vite build",
-    "build:electron": "esbuild electron/main.ts --bundle --platform=node --outfile=electron/main.cjs && esbuild electron/preload.ts --bundle --platform=browser --outfile=electron/preload.js",
+  "build:electron": "esbuild electron/main.ts --bundle --platform=node --outfile=electron/main.cjs && esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js",
     "build": "npm run build:ui && npm run build:electron",
     "start": "cross-env NODE_ENV=production electron ."
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
-    "@types/node": "^22.0.0",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.19",
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
-    "electron": "^31.2.1",
-    "electronmon": "^2.0.2",
-    "esbuild": "^0.23.0",
-    "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.10",
-    "typescript": "^5.5.4",
-    "vite": "^5.4.2",
-    "wait-on": "^7.2.0"
+    "@rollup/rollup-win32-x64-msvc": "^4.46.2",
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.0",
+    "cross-env": "^10.0.0",
+    "electron": "^36.8.0",
+    "electronmon": "^2.0.3",
+    "esbuild": "^0.25.9",
+    "lightningcss-win32-x64-msvc": "^1.30.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.12",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.0",
+    "wait-on": "^8.0.4"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "overrides": {
+    "@electron/get": "4.0.2",
+    "@electron/get@4.0.2": {
+      "global-agent": "empty-npm-package"
+    }
   }
 }
