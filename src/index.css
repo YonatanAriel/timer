@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
-:root { color-scheme: dark; }
-html, body, #root { height: 100%; }
-html, body { overflow: hidden; }
+:root {
+  color-scheme: dark;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+html,
+body {
+  overflow: hidden;
+}

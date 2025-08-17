@@ -1,5 +1,5 @@
-import { app, BrowserWindow, shell } from 'electron';
-import { join } from 'path';
+import { app, BrowserWindow, shell } from "electron";
+import { join } from "path";
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL;
 
@@ -11,11 +11,11 @@ async function createWindow() {
     height: 520,
     resizable: false,
     fullscreenable: false,
-  title: '20 20 20 timer',
-    backgroundColor: '#0B1220',
+    title: "20 20 20 timer",
+    backgroundColor: "#0B1220",
     autoHideMenuBar: true,
     webPreferences: {
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, "preload.js"),
       // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets
       webSecurity: !isDev,
     },
@@ -23,27 +23,27 @@ async function createWindow() {
 
   if (isDev) {
     await win.loadURL(process.env.VITE_DEV_SERVER_URL!);
-    win.webContents.openDevTools({ mode: 'detach' });
+    win.webContents.openDevTools({ mode: "detach" });
   } else {
-    await win.loadFile(join(__dirname, '..', 'dist', 'index.html'));
+    await win.loadFile(join(__dirname, "..", "dist", "index.html"));
   }
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
-    return { action: 'deny' } as any;
+    return { action: "deny" } as any;
   });
 }
 
 app.whenReady().then(async () => {
   await createWindow();
 
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });

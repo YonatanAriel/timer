@@ -1,5 +1,5 @@
-import { contextBridge } from 'electron';
+import { contextBridge } from "electron";
 
-contextBridge.exposeInMainWorld('appApi', {
+contextBridge.exposeInMainWorld("appApi", {
   // Reserved for future use if needed.
 });

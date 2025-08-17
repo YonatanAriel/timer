@@ -5,9 +5,9 @@
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
-  "dev": "concurrently -n VITE,ESB1,ESB2,EL \"vite\" \"esbuild electron/main.ts --bundle --platform=node --external:electron --outfile=electron/main.cjs --watch\" \"esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js --watch\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electronmon .\"",
+    "dev": "concurrently -n VITE,ESB1,ESB2,EL \"vite\" \"esbuild electron/main.ts --bundle --platform=node --external:electron --outfile=electron/main.cjs --watch\" \"esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js --watch\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electronmon .\"",
     "build:ui": "vite build",
-  "build:electron": "esbuild electron/main.ts --bundle --platform=node --external:electron --outfile=electron/main.cjs && esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js",
+    "build:electron": "esbuild electron/main.ts --bundle --platform=node --external:electron --outfile=electron/main.cjs && esbuild electron/preload.ts --bundle --platform=node --external:electron --outfile=electron/preload.js",
     "build": "npm run build:ui && npm run build:electron",
     "start": "cross-env NODE_ENV=production electron ."
   },
@@ -36,9 +36,9 @@
     "react-dom": "^19.1.0"
   },
   "overrides": {
-  "@electron/get": "2.0.3",
-  "@electron/get@2.0.3": {
-  "global-agent": "file:stubs/global-agent"
+    "@electron/get": "2.0.3",
+    "@electron/get@2.0.3": {
+      "global-agent": "file:stubs/global-agent"
     }
   }
 }

@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwind from '@tailwindcss/postcss';
-import autoprefixer from 'autoprefixer';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwind from "@tailwindcss/postcss";
+import autoprefixer from "autoprefixer";
 
 export default defineConfig({
   plugins: [react()],
@@ -13,14 +13,14 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/media': {
-        target: 'https://upload.wikimedia.org',
+      "/media": {
+        target: "https://upload.wikimedia.org",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/media/, ''),
+        rewrite: (path) => path.replace(/^\/media/, ""),
       },
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
   },
 });
