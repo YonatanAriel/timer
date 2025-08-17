@@ -169,7 +169,8 @@ export default function App() {
   const [target, setTarget] = useState<number | null>(null);
   const [now, setNow] = useState(() => performance.now());
   const [mode, setMode] = useState<Mode>("idle");
-  const { playWorkEnd, playBreakEnd, playBreakEndTwiceThen, stopAll } = useChimes();
+  const { playWorkEnd, playBreakEnd, playBreakEndTwiceThen, stopAll } =
+    useChimes();
   const minutesRef = useRef<HTMLInputElement | null>(null);
 
   // Auto-focus and select the minutes field on launch

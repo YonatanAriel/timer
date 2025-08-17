@@ -22,3 +22,20 @@ npm run build
 # then run electron in production mode
 npm start
 ```
+
+## Install on another Windows PC
+
+- Recommended: run the installer in `release/` named like `20 20 20 Timer-Setup-<version>-x64.exe`. If Windows SmartScreen shows a blue warning, click "More info" > "Run anyway".
+- Portable: copy the entire folder `release/win-unpacked` to the other PC and run `20 20 20 Timer.exe` inside it. Do not copy only the EXE; it needs the adjacent files.
+
+### Troubleshooting
+
+- If nothing opens, try launching from PowerShell to see errors:
+
+  ```pwsh
+  # inside the app folder
+  .\"20 20 20 Timer.exe"
+  ```
+
+- Make sure you're on Windows 10/11 x64. On Windows ARM64, x64 emulation must be enabled.
+- If you see errors about VCRUNTIME or MSVCP DLLs, install "Microsoft Visual C++ Redistributable (x64)" (2015–2022) from Microsoft and try again.
