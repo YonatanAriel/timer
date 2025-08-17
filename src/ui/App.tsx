@@ -32,8 +32,11 @@ function useChimes() {
   const stopAll = useCallback(() => {
     const ctx = ensure();
     const now = ctx.currentTime;
-    // Clear any loop timers
-    timersRef.current.forEach((id) => clearInterval(id));
+    // Clear any timers (intervals/timeouts)
+    timersRef.current.forEach((id) => {
+      clearInterval(id as any);
+      clearTimeout(id as any);
+    });
     timersRef.current = [];
     nodesRef.current.forEach((n) => {
       try {
@@ -135,7 +138,27 @@ function useChimes() {
     timersRef.current.push(id as unknown as number);
   }, [playBreakEndSynth, stopAll]);
 
-  return { playWorkEnd, playBreakEnd, stopAll };
+  // Play the break-end ping twice, then invoke a callback (used for auto-restart)
+  const playBreakEndTwiceThen = useCallback(
+    (then: () => void) => {
+      stopAll();
+      playBreakEndSynth();
+      const t1 = window.setTimeout(() => {
+        try {
+          playBreakEndSynth();
+        } catch {}
+      }, 600);
+      const t2 = window.setTimeout(() => {
+        try {
+          then();
+        } catch {}
+      }, 1600);
+      timersRef.current.push(t1 as unknown as number, t2 as unknown as number);
+    },
+    [playBreakEndSynth, stopAll]
+  );
+
+  return { playWorkEnd, playBreakEnd, playBreakEndTwiceThen, stopAll };
 }
 
 type Mode = "idle" | "work" | "workDone" | "break" | "breakDone";
@@ -146,7 +169,7 @@ export default function App() {
   const [target, setTarget] = useState<number | null>(null);
   const [now, setNow] = useState(() => performance.now());
   const [mode, setMode] = useState<Mode>("idle");
-  const { playWorkEnd, playBreakEnd, stopAll } = useChimes();
+  const { playWorkEnd, playBreakEnd, playBreakEndTwiceThen, stopAll } = useChimes();
   const minutesRef = useRef<HTMLInputElement | null>(null);
 
   // Auto-focus and select the minutes field on launch
@@ -205,10 +228,17 @@ export default function App() {
       playWorkEnd();
     } else if (mode === "break") {
       setTarget(null);
-      setMode("breakDone");
-      playBreakEnd();
+      // Play the sound twice, then auto-restart work (no button)
+      playBreakEndTwiceThen(() => {
+        setTarget(performance.now() + baseMs);
+        setMode("work");
+        requestAnimationFrame(() => {
+          minutesRef.current?.focus();
+          minutesRef.current?.select();
+        });
+      });
     }
-  }, [remaining, target, mode, playWorkEnd, playBreakEnd]);
+  }, [remaining, target, mode, playWorkEnd, playBreakEndTwiceThen, baseMs]);
 
   const startWork = useCallback(() => {
     stopAll();
