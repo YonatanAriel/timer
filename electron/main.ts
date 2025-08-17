@@ -11,7 +11,7 @@ async function createWindow() {
     height: 520,
     resizable: false,
     fullscreenable: false,
-    title: 'Timer',
+  title: '20 20 20 timer',
     backgroundColor: '#0B1220',
     autoHideMenuBar: true,
     webPreferences: {
