@@ -45,37 +45,37 @@ function useChimes() {
     nodesRef.current = [];
   }, [ensure]);
 
-  // A gentle bell-like triad (work end) — fallback if stream fails
+  // A gentle bell-like triad (work end)
   const playWorkEndSynth = useCallback(() => {
     const ctx = ensure();
     if (ctx.state === "suspended") ctx.resume();
     const out = ctx.createGain();
-    out.gain.value = 0.12; // low volume
+    out.gain.value = 0.18; // slightly louder but still calm
     out.connect(ctx.destination);
 
-    const mkBell = (freq: number, detune = 0) => {
+    const mkBell = (freq: number, startAt: number, dur = 1.6, amp = 0.35) => {
       const carrier = ctx.createOscillator();
       carrier.type = "sine";
       carrier.frequency.value = freq;
-      carrier.detune.value = detune;
       const gain = ctx.createGain();
-      gain.gain.value = 0.0001;
       const lp = ctx.createBiquadFilter();
       lp.type = "lowpass";
-      lp.frequency.value = 3500;
+      lp.frequency.value = 3600;
+      gain.gain.value = 0.0001;
       carrier.connect(gain).connect(lp).connect(out);
-      const now = ctx.currentTime;
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.35, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
-      carrier.start(now);
-      carrier.stop(now + 1.7);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.linearRampToValueAtTime(amp, startAt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, startAt + dur);
+      carrier.start(startAt);
+      carrier.stop(startAt + dur + 0.05);
       nodesRef.current.push(carrier, gain, lp);
     };
-    // C major light arpeggio
-    mkBell(523.25); // C5
-    setTimeout(() => mkBell(659.25, 4), 120); // E5
-    setTimeout(() => mkBell(783.99, -3), 260); // G5
+    const now = ctx.currentTime;
+    // C5, E5, G5 arpeggio on the audio clock (no setTimeout jitter)
+    mkBell(523.25, now);
+    mkBell(659.25, now + 0.14);
+    mkBell(783.99, now + 0.28);
+    nodesRef.current.push(out);
   }, [ensure]);
 
   // A softer airy ping (break end) — fallback if stream fails
@@ -83,7 +83,7 @@ function useChimes() {
     const ctx = ensure();
     if (ctx.state === "suspended") ctx.resume();
     const out = ctx.createGain();
-    out.gain.value = 0.1;
+    out.gain.value = 0.14;
     out.connect(ctx.destination);
 
     const osc = ctx.createOscillator();
@@ -101,7 +101,7 @@ function useChimes() {
     gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
     osc.start(now);
     osc.stop(now + 1.25);
-    nodesRef.current.push(osc, gain, hp);
+    nodesRef.current.push(osc, gain, hp, out);
   }, [ensure]);
 
   // Local-only playback via WebAudio (no network/CORS)
@@ -241,6 +241,11 @@ export default function App() {
   // Enter to continue from workDone → break
   useEffect(() => {
     if (mode !== "workDone") return;
+    // Ensure minutes input is focused/selected when Continue/Stop appears
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") startBreak();
     };
@@ -263,7 +268,7 @@ export default function App() {
 
   // Space to start when idle, but ignore if typing in inputs/buttons
   useEffect(() => {
-    if (mode !== "idle") return;
+  if (mode !== "idle") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== " ") return;
       const target = e.target as HTMLElement | null;
@@ -277,6 +282,15 @@ export default function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [mode, startWork]);
+
+  // Keep input focused/selected when breakDone UI appears
+  useEffect(() => {
+    if (mode !== "breakDone") return;
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
+  }, [mode]);
 
   return (
     <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-50 text-slate-800">
@@ -301,8 +315,8 @@ export default function App() {
           className="space-y-5 mb-8"
           onSubmit={(e) => {
             e.preventDefault();
-      if (mode === "work") restartWork();
-      else startWork(); // allow Start in idle, workDone, breakDone
+            if (mode === "work") restartWork();
+            else startWork(); // allow Start in idle, break, workDone, breakDone
           }}
         >
           <div>
@@ -334,7 +348,7 @@ export default function App() {
           <button
             type="submit"
             className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition cursor-pointer"
-            disabled={mode === "break"}
+            disabled={false}
             title={
               mode === "work"
                 ? "Click to apply the new minutes"
