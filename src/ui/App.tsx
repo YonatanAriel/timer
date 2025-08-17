@@ -20,6 +20,8 @@ function formatTime(ms: number) {
 function useChimes() {
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<Array<AudioNode>>([]);
+  const workEl = useRef<HTMLAudioElement | null>(null);
+  const breakEl = useRef<HTMLAudioElement | null>(null);
 
   const ensure = useCallback(() => {
     if (!ctxRef.current) ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -43,8 +45,8 @@ function useChimes() {
     nodesRef.current = [];
   }, [ensure]);
 
-  // A gentle bell-like triad (work end)
-  const playWorkEnd = useCallback(() => {
+  // A gentle bell-like triad (work end) — fallback if stream fails
+  const playWorkEndSynth = useCallback(() => {
     const ctx = ensure();
     if (ctx.state === 'suspended') ctx.resume();
     const out = ctx.createGain();
@@ -76,8 +78,8 @@ function useChimes() {
     setTimeout(() => mkBell(783.99, -3), 260); // G5
   }, [ensure]);
 
-  // A softer airy ping (break end)
-  const playBreakEnd = useCallback(() => {
+  // A softer airy ping (break end) — fallback if stream fails
+  const playBreakEndSynth = useCallback(() => {
     const ctx = ensure();
     if (ctx.state === 'suspended') ctx.resume();
     const out = ctx.createGain();
@@ -102,7 +104,30 @@ function useChimes() {
     nodesRef.current.push(osc, gain, hp);
   }, [ensure]);
 
-  return { playWorkEnd, playBreakEnd, stopAll };
+  // Prefer calm online audio (PD/CC0 bell-like chimes). If media fails, fall back to synth.
+  const playWorkEnd = useCallback(() => {
+    if (workEl.current) {
+      workEl.current.currentTime = 0;
+      workEl.current.volume = 0.35;
+      const p = workEl.current.play();
+      if (p && typeof p.catch === 'function') p.catch(() => playWorkEndSynth());
+      return;
+    }
+    playWorkEndSynth();
+  }, [playWorkEndSynth]);
+
+  const playBreakEnd = useCallback(() => {
+    if (breakEl.current) {
+      breakEl.current.currentTime = 0;
+      breakEl.current.volume = 0.3;
+      const p = breakEl.current.play();
+      if (p && typeof p.catch === 'function') p.catch(() => playBreakEndSynth());
+      return;
+    }
+    playBreakEndSynth();
+  }, [playBreakEndSynth]);
+
+  return { playWorkEnd, playBreakEnd, stopAll, workEl, breakEl };
 }
 
 type Mode = 'idle' | 'work' | 'workDone' | 'break' | 'breakDone';
@@ -112,7 +137,7 @@ export default function App() {
   const [target, setTarget] = useState<number | null>(null);
   const [now, setNow] = useState(() => performance.now());
   const [mode, setMode] = useState<Mode>('idle');
-  const { playWorkEnd, playBreakEnd, stopAll } = useChimes();
+  const { playWorkEnd, playBreakEnd, stopAll, workEl, breakEl } = useChimes();
   const minutesRef = useRef<HTMLInputElement | null>(null);
 
   // Auto-focus and select the minutes field on launch
@@ -219,6 +244,9 @@ export default function App() {
 
   return (
     <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+      {/* Calm online sounds (PD/CC0) with crossorigin so they play reliably */}
+      <audio ref={workEl} crossOrigin="anonymous" preload="auto" src="https://upload.wikimedia.org/wikipedia/commons/3/37/Bristol_Chimes.ogg" />
+      <audio ref={breakEl} crossOrigin="anonymous" preload="auto" src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Synthetic_bell_sound.ogg" />
       {/* Ambient colorful clouds */}
       <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-cyan-500/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-indigo-500/25 blur-3xl" />
