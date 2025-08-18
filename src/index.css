@@ -12,3 +12,24 @@ html,
 body {
   overflow: hidden;
 }
+
+/* Hide native number spinners so our custom green controls are the only ones shown */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* Green selection inside inputs */
+input::selection {
+  background: #10b981; /* emerald-500 */
+  color: #ffffff;
+}
+input::-moz-selection {
+  background: #10b981;
+  color: #ffffff;
+}

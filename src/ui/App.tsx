@@ -172,6 +172,27 @@ export default function App() {
   const { playWorkEnd, playBreakEnd, playBreakEndTwiceThen, stopAll } =
     useChimes();
   const minutesRef = useRef<HTMLInputElement | null>(null);
+  const continueBtnRef = useRef<HTMLButtonElement | null>(null);
+  const incMinutes = useCallback(() => {
+    let n = parseInt(minutesInput || "0", 10);
+    if (Number.isNaN(n)) n = 0;
+    n = Math.min(59, n + 1);
+    setMinutesInput(String(n));
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
+  }, [minutesInput]);
+  const decMinutes = useCallback(() => {
+    let n = parseInt(minutesInput || "0", 10);
+    if (Number.isNaN(n)) n = 0;
+    n = Math.max(0, n - 1);
+    setMinutesInput(String(n));
+    requestAnimationFrame(() => {
+      minutesRef.current?.focus();
+      minutesRef.current?.select();
+    });
+  }, [minutesInput]);
 
   // Auto-focus and select the minutes field on launch
   useEffect(() => {
@@ -294,13 +315,12 @@ export default function App() {
     });
   }, [stopAll]);
 
-  // Enter to continue from workDone → break
+  // Enter to continue from workDone → break; also focus the Continue button
   useEffect(() => {
     if (mode !== "workDone") return;
-    // Ensure minutes input is focused/selected when Continue/Stop appears
+    // Focus the Continue button so Enter activates it
     requestAnimationFrame(() => {
-      minutesRef.current?.focus();
-      minutesRef.current?.select();
+      continueBtnRef.current?.focus();
     });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") startBreak();
@@ -349,12 +369,12 @@ export default function App() {
   }, [mode]);
 
   return (
-    <div className="relative h-screen overflow-hidden flex items-center justify-center p-8 bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-50 text-slate-800">
+    <div className="relative flex items-center justify-center h-screen p-8 overflow-hidden bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-50 text-slate-800">
       {/* No external audio elements needed; sounds are generated locally via WebAudio */}
       {/* Ambient colorful clouds */}
-      <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-28 -left-32 h-96 w-96 rounded-full bg-lime-300/30 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/3 -left-20 h-72 w-72 rounded-full bg-teal-300/20 blur-3xl" />
+      <div className="absolute rounded-full pointer-events-none -top-24 -right-24 h-80 w-80 bg-emerald-300/30 blur-3xl" />
+      <div className="absolute rounded-full pointer-events-none -bottom-28 -left-32 h-96 w-96 bg-lime-300/30 blur-3xl" />
+      <div className="absolute rounded-full pointer-events-none top-1/3 -left-20 h-72 w-72 bg-teal-300/20 blur-3xl" />
 
       <div
         className={`relative z-10 w-full max-w-md rounded-3xl bg-white/70 backdrop-blur-xl shadow-[0_30px_80px_rgba(0,0,0,0.15)] p-8 border border-emerald-200 ${
@@ -363,20 +383,22 @@ export default function App() {
             : ""
         }`}
       >
-        <h1 className="text-3xl font-semibold tracking-tight mb-6 bg-gradient-to-r from-emerald-600 to-lime-600 bg-clip-text text-transparent">
+        <h1 className="mb-6 text-3xl font-semibold tracking-tight text-transparent bg-gradient-to-r from-emerald-600 to-lime-500 bg-clip-text">
           20 20 20 timer
         </h1>
 
         <form
-          className="space-y-5 mb-8"
+          className="mb-8 space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
             if (mode === "work") restartWork();
             else startWork(); // allow Start in idle, break, workDone, breakDone
           }}
         >
-          <div>
-            <label className="block text-xs text-slate-600 mb-1">Minutes</label>
+          <div className="relative">
+            <label className="block mb-1 text-xs text-emerald-600">
+              Minutes
+            </label>
             <input
               type="number"
               inputMode="numeric"
@@ -397,13 +419,36 @@ export default function App() {
                 setMinutesInput(String(clamped));
               }}
               ref={minutesRef}
-              className="w-full h-12 rounded-2xl bg-white border border-emerald-200 px-4 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
+              className="w-full h-12 pl-4 bg-white border appearance-none rounded-2xl border-emerald-200 pr-14 text-emerald-700 caret-emerald-600 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
+              style={{
+                WebkitAppearance: "none" as any,
+                MozAppearance: "textfield" as any,
+              }}
               placeholder="20"
             />
+            {/* Custom green increment/decrement controls */}
+            <div className="absolute flex flex-col h-8 overflow-hidden bg-white border rounded-lg shadow-sm right-2 top-1/2 -translate-y-1/5 w-9 border-emerald-300">
+              <button
+                type="button"
+                onClick={incMinutes}
+                aria-label="Increase minutes"
+                className="flex-1 flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-white text-[10px] leading-none cursor-pointer"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={decMinutes}
+                aria-label="Decrease minutes"
+                className="flex-1 flex items-center justify-center bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-white text-[10px] leading-none cursor-pointer"
+              >
+                ▼
+              </button>
+            </div>
           </div>
           <button
             type="submit"
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-400/25 transition cursor-pointer"
+            className="w-full h-12 font-semibold text-white transition shadow-lg cursor-pointer rounded-2xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 shadow-emerald-400/25"
             disabled={false}
             title={
               mode === "work"
@@ -416,7 +461,7 @@ export default function App() {
         </form>
 
         <div className="text-center select-none">
-          <div className="inline-block rounded-2xl px-5 py-2 bg-white/70 border border-emerald-200 backdrop-blur-md">
+          <div className="inline-block px-5 py-2 border rounded-2xl bg-white/70 border-emerald-200 backdrop-blur-md">
             <div className="text-7xl md:text-8xl font-semibold tracking-tight tabular-nums font-mono text-emerald-700 drop-shadow-[0_0_24px_rgba(16,185,129,0.25)] select-none">
               {formatTime(remaining)}
             </div>
@@ -424,17 +469,19 @@ export default function App() {
         </div>
 
         {mode === "workDone" && (
-          <div className="mt-10 flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 mt-10">
             <div className="flex gap-3">
               <button
                 onClick={startBreak}
-                className="h-12 px-7 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition cursor-pointer"
+                ref={continueBtnRef}
+                autoFocus
+                className="h-12 font-semibold transition shadow-lg cursor-pointer px-7 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 shadow-emerald-500/30"
               >
                 Continue
               </button>
               <button
                 onClick={stopAllFlow}
-                className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition cursor-pointer"
+                className="h-12 px-6 transition border cursor-pointer rounded-xl bg-white/70 hover:bg-white border-emerald-200 text-slate-800"
               >
                 Stop
               </button>
@@ -443,17 +490,17 @@ export default function App() {
         )}
 
         {mode === "breakDone" && (
-          <div className="mt-10 flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 mt-10">
             <div className="flex gap-3">
               <button
                 onClick={restartAfterBreak}
-                className="h-12 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 font-semibold shadow-lg shadow-emerald-500/30 transition cursor-pointer"
+                className="h-12 px-6 font-semibold transition shadow-lg cursor-pointer rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 hover:from-emerald-400 hover:to-lime-300 text-slate-900 shadow-emerald-500/30"
               >
                 Restart
               </button>
               <button
                 onClick={stopAllFlow}
-                className="h-12 px-6 rounded-xl bg-white/70 hover:bg-white border border-emerald-200 text-slate-800 transition cursor-pointer"
+                className="h-12 px-6 transition border cursor-pointer rounded-xl bg-white/70 hover:bg-white border-emerald-200 text-slate-800"
               >
                 Stop
               </button>
