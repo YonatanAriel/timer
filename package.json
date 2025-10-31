@@ -57,7 +57,8 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "build-resources/icon.ico"
     },
     "nsis": {
       "oneClick": true,
