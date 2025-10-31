@@ -204,6 +204,15 @@ export default function App() {
     return () => clearTimeout(t);
   }, []);
 
+  // Auto-start 20 minutes timer on app initialization
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTarget(performance.now() + 20 * 60_000); // 20 minutes in milliseconds
+      setMode("work");
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   // High-quality timer loop using rAF + setTimeout hybrid
   useEffect(() => {
     let raf = 0;
