@@ -2,8 +2,7 @@ node_modules/
 /dist/
 /out/
 /build/
-/release/private exe files/
-/release/private yml files/
+/release/
 
 npm-debug.log*
 yarn-debug.log*
@@ -15,3 +14,6 @@ pnpm-debug.log*
 
 .env
 .env.*
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github\instructions\snyk_rules.instructions.md

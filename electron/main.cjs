@@ -9,15 +9,18 @@ async function createWindow() {
     height: 520,
     resizable: false,
     fullscreenable: false,
+    show: false,
     title: "20 20 20 timer",
     backgroundColor: "#0B1220",
     autoHideMenuBar: true,
     webPreferences: {
       preload: (0, import_path.join)(__dirname, "preload.js"),
       // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets
-      webSecurity: !isDev
+      webSecurity: !isDev,
+      backgroundThrottling: false
     }
   });
+  win.once("ready-to-show", () => win.show());
   if (isDev) {
     await win.loadURL(process.env.VITE_DEV_SERVER_URL);
     win.webContents.openDevTools({ mode: "detach" });

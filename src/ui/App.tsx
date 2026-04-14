@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // Contract:
 // Inputs: minutes:number only
@@ -76,6 +76,12 @@ function useChimes() {
       carrier.start(startAt);
       carrier.stop(startAt + dur + 0.05);
       nodesRef.current.push(carrier, gain, lp);
+      // Clean up finished nodes to prevent memory leak
+      carrier.onended = () => {
+        nodesRef.current = nodesRef.current.filter(
+          (n) => n !== carrier && n !== gain && n !== lp
+        );
+      };
     };
     const now = ctx.currentTime;
     // C5, E5, G5 arpeggio on the audio clock (no setTimeout jitter)
@@ -109,6 +115,12 @@ function useChimes() {
     osc.start(now);
     osc.stop(now + 1.25);
     nodesRef.current.push(osc, gain, hp, out);
+    // Clean up finished nodes to prevent memory leak
+    osc.onended = () => {
+      nodesRef.current = nodesRef.current.filter(
+        (n) => n !== osc && n !== gain && n !== hp && n !== out
+      );
+    };
   }, [ensure]);
 
   // Local-only playback via WebAudio (no network/CORS)
@@ -161,6 +173,24 @@ function useChimes() {
   return { playWorkEnd, playBreakEnd, playBreakEndTwiceThen, stopAll };
 }
 
+/* ── Static background decoration (never re-renders) ── */
+const BackgroundDecor = memo(function BackgroundDecor() {
+  return (
+    <>
+      {/* Ambient colorful clouds */}
+      <div className="absolute rounded-full pointer-events-none -top-24 -right-24 h-80 w-80 bg-emerald-300/30 blur-3xl" />
+      <div className="absolute rounded-full pointer-events-none -bottom-28 -left-32 h-96 w-96 bg-lime-300/30 blur-3xl" />
+      <div className="absolute rounded-full pointer-events-none top-1/3 -left-20 h-72 w-72 bg-teal-300/20 blur-3xl" />
+    </>
+  );
+});
+
+/* ── Stable inline style object (avoids re-allocation every render) ── */
+const INPUT_STYLE = {
+  WebkitAppearance: "none" as any,
+  MozAppearance: "textfield" as any,
+};
+
 type Mode = "idle" | "work" | "workDone" | "break" | "breakDone";
 
 export default function App() {
@@ -173,8 +203,13 @@ export default function App() {
     useChimes();
   const minutesRef = useRef<HTMLInputElement | null>(null);
   const continueBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  // Ref to read minutesInput in stable callbacks without re-creating them
+  const minutesInputRef = useRef(minutesInput);
+  minutesInputRef.current = minutesInput;
+
   const incMinutes = useCallback(() => {
-    let n = parseInt(minutesInput || "0", 10);
+    let n = parseInt(minutesInputRef.current || "0", 10);
     if (Number.isNaN(n)) n = 0;
     n = Math.min(59, n + 1);
     setMinutesInput(String(n));
@@ -182,9 +217,10 @@ export default function App() {
       minutesRef.current?.focus();
       minutesRef.current?.select();
     });
-  }, [minutesInput]);
+  }, []);
+
   const decMinutes = useCallback(() => {
-    let n = parseInt(minutesInput || "0", 10);
+    let n = parseInt(minutesInputRef.current || "0", 10);
     if (Number.isNaN(n)) n = 0;
     n = Math.max(0, n - 1);
     setMinutesInput(String(n));
@@ -192,7 +228,7 @@ export default function App() {
       minutesRef.current?.focus();
       minutesRef.current?.select();
     });
-  }, [minutesInput]);
+  }, []);
 
   // Auto-focus and select the minutes field on launch
   useEffect(() => {
@@ -213,27 +249,33 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // High-quality timer loop using rAF + setTimeout hybrid
+  // ── Optimized timer loop ──
+  // Only runs when a target is set; only triggers a React re-render
+  // when the formatted display string actually changes (~1×/sec).
   useEffect(() => {
+    if (!target) return; // nothing to count down
+
     let raf = 0;
-    let timer: any;
-    let active = true;
+    let lastDisplayed = "";
 
     const tick = () => {
-      if (!active) return;
-      setNow(performance.now());
-      raf = requestAnimationFrame(tick);
+      const nowMs = performance.now();
+      const rem = Math.max(0, target - nowMs);
+      const display = formatTime(rem);
+
+      if (display !== lastDisplayed) {
+        lastDisplayed = display;
+        setNow(nowMs);
+      }
+
+      if (rem > 0) {
+        raf = requestAnimationFrame(tick);
+      }
     };
 
-    // rAF drives the display; a coarse timeout conserves CPU
-    timer = setInterval(() => setNow(performance.now()), 250);
     raf = requestAnimationFrame(tick);
-    return () => {
-      active = false;
-      clearInterval(timer);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
 
   const minutes = useMemo(() => {
     const n = parseInt(minutesInput, 10);
@@ -241,11 +283,15 @@ export default function App() {
     return Math.max(0, Math.min(59, n));
   }, [minutesInput]);
   const baseMs = useMemo(() => Math.max(0, minutes) * 60_000, [minutes]);
-  const remaining = target
-    ? Math.max(0, target - now)
-    : mode === "breakDone" || mode === "workDone"
-    ? 0
-    : baseMs;
+
+  const remaining = useMemo(() => {
+    if (target) return Math.max(0, target - now);
+    if (mode === "breakDone" || mode === "workDone") return 0;
+    return baseMs;
+  }, [target, now, mode, baseMs]);
+
+  const displayTime = useMemo(() => formatTime(remaining), [remaining]);
+
   const running =
     !!target && remaining > 0 && (mode === "work" || mode === "break");
 
@@ -380,10 +426,7 @@ export default function App() {
   return (
     <div className="relative flex items-center justify-center h-screen p-8 overflow-hidden bg-gradient-to-b from-emerald-50 via-emerald-100 to-emerald-50 text-slate-800">
       {/* No external audio elements needed; sounds are generated locally via WebAudio */}
-      {/* Ambient colorful clouds */}
-      <div className="absolute rounded-full pointer-events-none -top-24 -right-24 h-80 w-80 bg-emerald-300/30 blur-3xl" />
-      <div className="absolute rounded-full pointer-events-none -bottom-28 -left-32 h-96 w-96 bg-lime-300/30 blur-3xl" />
-      <div className="absolute rounded-full pointer-events-none top-1/3 -left-20 h-72 w-72 bg-teal-300/20 blur-3xl" />
+      <BackgroundDecor />
 
       <div
         className={`relative z-10 w-full max-w-md rounded-3xl bg-white/70 backdrop-blur-xl shadow-[0_30px_80px_rgba(0,0,0,0.15)] p-8 border border-emerald-200 ${
@@ -429,10 +472,7 @@ export default function App() {
               }}
               ref={minutesRef}
               className="w-full h-12 pl-4 bg-white border appearance-none rounded-2xl border-emerald-200 pr-14 text-emerald-700 caret-emerald-600 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
-              style={{
-                WebkitAppearance: "none" as any,
-                MozAppearance: "textfield" as any,
-              }}
+              style={INPUT_STYLE}
               placeholder="20"
             />
             {/* Custom green increment/decrement controls */}
@@ -472,7 +512,7 @@ export default function App() {
         <div className="text-center select-none">
           <div className="inline-block px-5 py-2 border rounded-2xl bg-white/70 border-emerald-200 backdrop-blur-md">
             <div className="text-7xl md:text-8xl font-semibold tracking-tight tabular-nums font-mono text-emerald-700 drop-shadow-[0_0_24px_rgba(16,185,129,0.25)] select-none">
-              {formatTime(remaining)}
+              {displayTime}
             </div>
           </div>
         </div>
