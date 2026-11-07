@@ -31,7 +31,7 @@ References:
 - Build: esbuild (Electron main/preload), Vite (renderer)
 - Packaging: electron‑builder (Windows NSIS + Portable; macOS unpacked `.app`)
 - Dev tooling: concurrently, electronmon, wait‑on
-- CI: GitHub Actions (Windows packaging workflow)
+- CI: GitHub Actions (Windows + macOS packaging on `v*` tags, published as GitHub Releases)
 
 ## System requirements
 
@@ -40,6 +40,22 @@ References:
 - If you encounter VCRUNTIME/MSVCP errors on Windows, install the “Microsoft Visual C++ Redistributable (x64) 2015–2022”.
 
 ## Install and use
+
+One command (downloads the latest GitHub Release; no Homebrew or winget):
+
+macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YonatanAriel/timer/main/scripts/install-mac.sh | bash
+```
+
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/YonatanAriel/timer/main/scripts/install-windows.ps1 | iex
+```
+
+Those commands need a published tag (`v0.1.2`, etc.) so CI has uploaded installers. The Mac app is unsigned: the first open may need Control-click → Open.
 
 ### Windows
 
@@ -90,6 +106,13 @@ npm run pack:mac
 ```
 
 Output is `release/mac-arm64/20 20 20 Timer.app` on Apple silicon.
+
+Publish Windows and Mac installers: push a version tag. GitHub Actions builds both and attaches files to the GitHub Release.
+
+```bash
+git tag v0.1.2
+git push origin v0.1.2
+```
 
 ## Troubleshooting
 

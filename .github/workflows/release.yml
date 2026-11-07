@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run pack:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timer-windows
+          path: |
+            release/*Setup*.exe
+            release/*Portable*.exe
+          if-no-files-found: error
+      - name: Attach Windows installers to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            release/*Setup*.exe
+            release/*Portable*.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run pack:mac
+      - name: Zip the .app for download
+        run: |
+          set -euo pipefail
+          app="$(find release -name '20 20 20 Timer.app' -type d | head -n 1)"
+          if [ -z "$app" ]; then
+            echo "Mac .app not found under release/"
+            find release -maxdepth 3
+            exit 1
+          fi
+          ditto -c -k --keepParent "$app" release/20-20-20-Timer-mac-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timer-macos
+          path: release/20-20-20-Timer-mac-arm64.zip
+          if-no-files-found: error
+      - name: Attach Mac zip to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release/20-20-20-Timer-mac-arm64.zip
