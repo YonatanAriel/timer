@@ -13,6 +13,7 @@ async function createWindow() {
     title: "20 20 20 timer",
     backgroundColor: "#0B1220",
     autoHideMenuBar: true,
+    icon: (0, import_path.join)(__dirname, "..", "build-resources", "icon.png"),
     webPreferences: {
       preload: (0, import_path.join)(__dirname, "preload.js"),
       // In dev only, relax webSecurity to avoid CORS blocks for remote audio assets

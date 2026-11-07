@@ -11,10 +11,10 @@
     "build": "npm run build:ui && npm run build:electron",
     "start": "cross-env NODE_ENV=production electron .",
     "pack": "npm run build && electron-builder",
-    "pack:win": "npm run build && electron-builder --win"
+    "pack:win": "npm run build && electron-builder --win",
+    "pack:mac": "npm run build && electron-builder --mac"
   },
   "devDependencies": {
-    "@rollup/rollup-win32-x64-msvc": "^4.46.2",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
@@ -27,10 +27,8 @@
     "electronmon": "^2.0.3",
     "esbuild": "^0.25.9",
     "electron-builder": "^24.13.3",
-    "lightningcss-win32-x64-msvc": "^1.30.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.12",
-    "@tailwindcss/oxide-win32-x64-msvc": "^4.1.12",
     "typescript": "^5.9.2",
     "vite": "^7.0.0",
     "wait-on": "^8.0.4"
@@ -50,8 +48,17 @@
       "electron/**",
       "!electron/*.ts",
       "package.json",
+      "build-resources/icon.png",
       "!stubs/**"
     ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dir"
+      ],
+      "icon": "build-resources/icon.icns",
+      "identity": null
+    },
     "win": {
       "artifactName": "${productName}-Setup-${version}-${arch}.exe",
       "target": [
