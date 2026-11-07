@@ -1,6 +1,6 @@
 # 20‑20‑20 Timer (Electron + React)
 
-A tiny, distraction‑free desktop timer for Windows that helps you practice the 20‑20‑20 rule to reduce digital eye strain. Simple input, gentle sounds, and keyboard‑first flow.
+A tiny, distraction‑free desktop timer for Windows and macOS that helps you practice the 20‑20‑20 rule to reduce digital eye strain. Simple input, gentle sounds, and keyboard‑first flow.
 
 ## What is the 20‑20‑20 rule?
 
@@ -20,7 +20,7 @@ References:
 - Sounds: soft chimes via local WebAudio (no internet). Work end loops until you act; break end plays twice and continues automatically.
 - Keyboard: Enter to continue/restart; Space to start when idle.
 - Calm, light‑green UI; menu hidden; fast startup.
-- Windows installer and portable builds.
+- Windows installer and portable builds; macOS `.app` via `electron-builder`.
 
 ## Tech stack
 
@@ -29,16 +29,19 @@ References:
 - Styling: Tailwind CSS v4 with @tailwindcss/postcss and Autoprefixer
 - Audio: WebAudio API (synthesized chimes, no external files)
 - Build: esbuild (Electron main/preload), Vite (renderer)
-- Packaging: electron‑builder (NSIS installer + Portable)
+- Packaging: electron‑builder (Windows NSIS + Portable; macOS unpacked `.app`)
 - Dev tooling: concurrently, electronmon, wait‑on
 - CI: GitHub Actions (Windows packaging workflow)
 
 ## System requirements
 
 - Windows 10/11 (x64). On Windows ARM64, enable x64 emulation.
-- If you encounter VCRUNTIME/MSVCP errors, install the “Microsoft Visual C++ Redistributable (x64) 2015–2022”.
+- macOS on Apple silicon (arm64). The Mac build is unsigned (no Apple Developer ID).
+- If you encounter VCRUNTIME/MSVCP errors on Windows, install the “Microsoft Visual C++ Redistributable (x64) 2015–2022”.
 
 ## Install and use
+
+### Windows
 
 Recommended (installer):
 
@@ -50,33 +53,47 @@ Portable (no install):
 
 - Use `release/20 20 20 Timer-Portable-<version>-x64.exe`, or copy the entire `release/win-unpacked` folder and run `20 20 20 Timer.exe` inside it. Keep files together.
 
+### macOS
+
+1. Build with `npm run pack:mac` (see Developer below).
+2. Copy `release/mac-arm64/20 20 20 Timer.app` to `/Applications` or the Desktop.
+3. Open the `.app`. The first launch of an unsigned app may need Control-click → Open, or System Settings → Privacy & Security → Open Anyway.
+
+Finder draws app icons on macOS’s rounded square. The icon file is transparent; the light tile behind it is the system, not a missing Mac icon.
+
 ## Developer
 
 Install deps and run in dev (UI + Electron live reload):
 
-```pwsh
-cd C:\Users\yonat\repos\timer
+```bash
 npm ci
 npm run dev
 ```
 
 Build for local production run:
 
-```pwsh
+```bash
 npm run build
 npm start
 ```
 
 Package Windows artifacts (installer + portable):
 
-```pwsh
+```bash
 npm run pack:win
-start .\release
 ```
+
+Package a macOS `.app` (current machine arch, unsigned):
+
+```bash
+npm run pack:mac
+```
+
+Output is `release/mac-arm64/20 20 20 Timer.app` on Apple silicon.
 
 ## Troubleshooting
 
-- If nothing opens, run from terminal to see logs:
+- If nothing opens on Windows, run from terminal to see logs:
 
   ```pwsh
   & "%LOCALAPPDATA%\Programs\20 20 20 Timer\20 20 20 Timer.exe" --enable-logging
@@ -84,6 +101,12 @@ start .\release
   & ".\release\win-unpacked\20 20 20 Timer.exe" --enable-logging
   ```
 
-- SmartScreen: click “More info” → “Run anyway”.
+- If nothing opens on macOS:
+
+  ```bash
+  "/Applications/20 20 20 Timer.app/Contents/MacOS/20 20 20 Timer" --enable-logging
+  ```
+
+- Windows SmartScreen: click “More info” → “Run anyway”.
 - Keep the portable EXE with its adjacent files; don’t copy the EXE alone.
 - On corporate/locked‑down devices, security software may quarantine unsigned apps; allow/restore in Protection history or ask IT.
