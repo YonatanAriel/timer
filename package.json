@@ -80,9 +80,11 @@
     }
   },
   "overrides": {
-    "@electron/get": "2.0.3",
-    "@electron/get@2.0.3": {
-      "global-agent": "file:stubs/global-agent"
+    "app-builder-lib": {
+      "@electron/get": "^3.0.0"
+    },
+    "electron-builder": {
+      "@electron/get": "^3.0.0"
     }
   }
 }
