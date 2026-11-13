@@ -23,10 +23,10 @@
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.0",
     "cross-env": "^10.0.0",
-    "electron": "^36.8.0",
+    "electron": "^45.3.1",
+    "electron-builder": "^26.18.0",
     "electronmon": "^2.0.3",
     "esbuild": "^0.25.9",
-    "electron-builder": "^24.13.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.9.2",
@@ -80,9 +80,11 @@
     }
   },
   "overrides": {
-    "@electron/get": "2.0.3",
-    "@electron/get@2.0.3": {
-      "global-agent": "file:stubs/global-agent"
+    "app-builder-lib": {
+      "@electron/get": "^3.0.0"
+    },
+    "electron-builder": {
+      "@electron/get": "^3.0.0"
     }
   }
 }
